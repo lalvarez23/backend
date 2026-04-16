@@ -2,15 +2,22 @@ const express = require('express');
 const router = express.Router();
 
 const {
-    createInspection,
-    getMyInspections,
-    startInspection
+    solicitarInspeccion,
+    getMisSolicitudes,
+    getDetalleSolicitud
 } = require('./inspection.controller');
 
-const verifyToken = require('../middlewares/auth');
+const { verifyToken, verifyProductor } = require('../middlewares/auth');
 
-router.post('/', verifyToken, createInspection);
-router.get('/', verifyToken, getMyInspections);
-router.put('/:id/start', verifyToken, startInspection);
+// Todas las rutas requieren token y rol productor
+router.use(verifyToken, verifyProductor);
+
+// POST /api/inspections/solicitar          → solicitar inspección (RF-04)
+// GET  /api/inspections/mis-solicitudes    → ver todas mis solicitudes (?estado=pendiente)
+// GET  /api/inspections/:id               → ver detalle de una solicitud
+
+router.post('/solicitar',       solicitarInspeccion);
+router.get('/mis-solicitudes',  getMisSolicitudes);
+router.get('/:id',              getDetalleSolicitud);
 
 module.exports = router;
