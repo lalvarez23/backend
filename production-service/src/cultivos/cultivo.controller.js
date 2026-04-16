@@ -8,8 +8,8 @@ const createCultivo = (req, res) => {
     const { lote_id, especie_id, variedad, fecha_siembra } = req.body;
     const productor_id = req.user.id;
 
-    if (!lote_id || !especie_id || !fecha_siembra) {
-        return res.status(400).json({ message: 'Faltan datos obligatorios (lote_id, especie_id, fecha_siembra)' });
+    if (!lote_id || !fecha_siembra) {
+        return res.status(400).json({ message: 'Faltan datos obligatorios (lote_id, fecha_siembra)' });
     }
 
     // E5: Fecha de siembra no puede ser futura
@@ -46,9 +46,9 @@ const createCultivo = (req, res) => {
                         }
 
                         db.query(
-                            `INSERT INTO cultivos (lote_id, especie_id, variedad, fecha_siembra, estado, fecha_registro)
-                             VALUES (?, ?, ?, ?, 'activo', NOW())`,
-                            [lote_id, especie_id, variedad || null, fecha_siembra],
+                            `INSERT INTO cultivos (lote_id, variedad, fecha_siembra, estado, fecha_registro)
+                            VALUES (?, ?, ?, 'activo', NOW())`,
+                            [lote_id, variedad || null, fecha_siembra],
                             (err, result) => {
                                 if (err) { console.error(err); return res.status(500).json({ message: 'Error al registrar cultivo' }); }
 
@@ -82,11 +82,10 @@ const getCultivosByLote = (req, res) => {
             if (results.length === 0) return res.status(404).json({ message: 'Lote no encontrado' });
 
             db.query(
-                `SELECT c.*, e.nombre AS especie_nombre, e.nombre_cientifico
-                 FROM cultivos c
-                 JOIN especies e ON e.id = c.especie_id
-                 WHERE c.lote_id = ?
-                 ORDER BY c.fecha_registro DESC`,
+                `SELECT id, lote_id, variedad, fecha_siembra, estado, fecha_fin, fecha_registro
+                 FROM cultivos
+                 WHERE lote_id = ?
+                 ORDER BY fecha_registro DESC`,
                 [lote_id],
                 (err, cultivos) => {
                     if (err) { console.error(err); return res.status(500).json({ message: 'Error al obtener cultivos' }); }
